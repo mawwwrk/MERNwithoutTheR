@@ -3,7 +3,8 @@
 require("dotenv").config();
 
 const dbg = require("debug");
-
+const colors = require("./colors");
+const readline = require("readline");
 const info = dbg("api:info");
 
 const { fetch } = require("undici");
@@ -15,7 +16,7 @@ const models = { mcst: Mcst, hdb: Hdb };
 
 //? setting up mongo connection
 
-const dbName = "testdb";
+const dbName = "hdbmcstdata";
 dbg("mongo:url")(process.env.MONGO_URI);
 const mongooseUrl = `${process.env.MONGO_URI}${dbName}`;
 info(mongooseUrl);
@@ -54,7 +55,7 @@ const doFetch = async (inputUri) => {
     if (!success) throw new Error("Failed to fetch data");
     dbg("app:undici")(`Fetched ${records.length} records`);
     let nextUrl = records.length === limit ? next : undefined;
-    dbg("old-app:next")(
+    dbg("debug:next")(
       `${next}, Next url: ${nextUrl}, length: ${records.length} ${
         records.length < limit
       }`
@@ -93,7 +94,7 @@ const seed = async (what) => {
     dbg("app:records")(`inserted ${records.length} records`);
     total += records.length;
     if (next) {
-      dbg("app:next")(`loading next page, ${next}`);
+      dbg("debug:next")(`loading next page, ${next}`);
       await load(`${root}${next}`);
     }
   };
@@ -108,4 +109,33 @@ async function seedDb() {
   db.close();
 }
 
-seedDb();
+const strings = [
+  `\n${colors.fg.Green}Do you want to seed the database?${colors.Reset}`,
+  `\nThis will ${colors.fg.Cyan}empty the collection${colors.Reset} and repopulate it with data from data.gov.sg`,
+  `${colors.fg.Yellow} (y / n)${colors.Reset}: `,
+];
+
+function main() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  const question = strings.join("");
+  rl.question(question, async (answer) => {
+    if (answer === "y") {
+      dbg.enable("app:*");
+      await seedDb();
+      console.log(`${colors.bg.Blue}Seeded database${colors.Reset}`);
+    } else if (answer === "n") {
+      console.log(`${colors.bg.Blue}Not seeding database${colors.Reset}`);
+    } else {
+      console.log(
+        `${colors.bg.Red}${colors.fg.Black}${colors.Bright}Invalid answer. exiting${colors.Reset}`
+      );
+    }
+    dbg.disable();
+    rl.close();
+  });
+}
+main();
+// seedDb();

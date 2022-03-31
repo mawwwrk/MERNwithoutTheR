@@ -1,4 +1,16 @@
-<<<<<<< HEAD
+node_modules
+.pnpm-store
+
+*-gi-*
+.devcontainer
+i.sh
+
+.envrc
+.tool-versions
+
+.trunk
+.env
+
 # Logs
 logs
 *.log
@@ -103,18 +115,3 @@ dist
 
 # TernJS port file
 .tern-port
-=======
-
-node_modules
-.pnpm-store
-
-*-gi-*
-.devcontainer
-i.sh
-
-.envrc
-.tool-versions
-
-.trunk
-.env
->>>>>>> ae767e0 (init)
