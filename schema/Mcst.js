@@ -2,33 +2,56 @@
 /* eslint-disable unicorn/prefer-module */
 const { Schema, model } = require("mongoose");
 
-const Mcst = model(
-  "MCST",
-  new Schema(
-    {
-      _id: String,
-      usr_mcno: String,
-      usr_mctype: String,
-      sub_mcno: String,
-      sub_mcstuen: String,
-      usr_devtname: String,
-      devt_location: String,
-      mcst_houseno: String,
-      mcst_roadname: String,
-      mcst_unitno: String,
-      mcst_buildingname: String,
-      mcst_postalcode: String,
-      mcst_telno: String,
-      ust_status: String,
-      mcst_stratalota: Number,
-      managementname: String,
-      management_tel_no: String,
-      mc_form_date: String,
+function handleNaOrNULL(input) {
+  if (input === "na") return;
+  if (input === "NULL") return;
+  if (input === "0") return;
+  return input;
+}
+
+const schema = new Schema(
+  {
+    _id: Number,
+    usr_mcno: { type: String, required: false, set: handleNaOrNULL },
+    usr_mctype: {
+      type: String,
+      enum: [
+        "Single Tier Management Corporation",
+        "2 Tier Management Corporation",
+      ],
     },
-    {
-      collection: "mcst",
-    }
-  )
+    sub_mcno: { type: String, required: false, set: handleNaOrNULL },
+    sub_mcstuen: { type: String },
+    usr_devtname: { type: String, required: false, set: handleNaOrNULL },
+    devt_location: String,
+    mcst_houseno: String,
+    mcst_roadname: String,
+    mcst_unitno: { type: String, required: false, set: handleNaOrNULL },
+    mcst_buildingname: { type: String, required: false, set: handleNaOrNULL },
+    mcst_postalcode: {
+      type: String,
+      required: false,
+      set: handleNaOrNULL,
+    },
+    mcst_telno: { type: String, required: false, set: handleNaOrNULL },
+    ust_status: { type: String, enum: ["ACTIVE", "DEFUNCT"] },
+    mcst_stratalota: Number,
+    managementname: { type: String, required: false, set: handleNaOrNULL },
+    management_tel_no: { type: String, required: false, set: handleNaOrNULL },
+    mc_form_date: {
+      type: Date,
+      set: function (v) {
+        const dateParts = v.split("/");
+        return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+      },
+      required: false,
+    },
+  },
+  {
+    collection: "mcst",
+  }
 );
+
+const Mcst = model("MCST", schema);
 
 module.exports = Mcst;

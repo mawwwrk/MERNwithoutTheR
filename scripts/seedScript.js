@@ -11,7 +11,7 @@ const { fetch } = require("undici");
 const mongoose = require("mongoose");
 
 const Mcst = require("./schema/MCST");
-const Hdb = require("./schema/Hdb");
+const Hdb = require("./schema/HDB");
 const models = { mcst: Mcst, hdb: Hdb };
 
 //? setting up mongo connection
@@ -79,12 +79,12 @@ const useMongoose = () => {
 
 /** @param {"hdb"|"mcst"} what */
 const seed = async (what) => {
-  if (!what in models) throw new Error("Invalid seed");
+  if (!(what in models)) throw new Error("Invalid seed");
   dbg("app:seed")(`Preparing to seed ${what}`);
   const model = models[what];
   await model.deleteMany({});
   uri.searchParams.set(QUERY, resources[what]);
-  url.searchParams.set("limit", 1000);
+  uri.searchParams.set("limit", 1000);
   let total = 0;
   dbg("app:seed")(`Seeding ${what}`);
   const load = async (url) => {
@@ -108,7 +108,11 @@ async function seedDb() {
   await seed("mcst");
   db.close();
 }
-
+async function seedCollection(collection) {
+  const db = useMongoose();
+  await seed(collection);
+  db.close();
+}
 const strings = [
   `\n${colors.fg.Green}Do you want to seed the database?${colors.Reset}`,
   `\nThis will ${colors.fg.Cyan}empty the collection${colors.Reset} and repopulate it with data from data.gov.sg`,
@@ -122,20 +126,32 @@ function main() {
   });
   const question = strings.join("");
   rl.question(question, async (answer) => {
-    if (answer === "y") {
-      dbg.enable("app:*");
-      await seedDb();
-      console.log(`${colors.bg.Blue}Seeded database${colors.Reset}`);
-    } else if (answer === "n") {
-      console.log(`${colors.bg.Blue}Not seeding database${colors.Reset}`);
-    } else {
-      console.log(
-        `${colors.bg.Red}${colors.fg.Black}${colors.Bright}Invalid answer. exiting${colors.Reset}`
-      );
+    dbg.enable("app:*");
+    switch (answer.toLowerCase()) {
+      case "y":
+        await seedDb();
+        console.log(`${colors.bg.Blue}Seeded database${colors.Reset}`);
+        break;
+      case "n":
+        console.log(`${colors.bg.Blue}Not seeding database${colors.Reset}`);
+        break;
+      case "m":
+        console.log(
+          `${colors.bg.Blue}Seeded Seeding ONLY mcsts${colors.Reset}`
+        );
+        await seedCollection("mcst");
+        break;
+      case "h":
+        console.log(`${colors.bg.Blue}Seeded ONLY hdbs${colors.Reset}`);
+        await seedCollection("hdb");
+        break;
+      default:
+        console.log(
+          `${colors.bg.Red}${colors.fg.Black}${colors.Bright}Invalid answer. exiting${colors.Reset}`
+        );
     }
     dbg.disable();
     rl.close();
   });
 }
 main();
-// seedDb();
