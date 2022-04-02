@@ -3,20 +3,23 @@
 require("dotenv").config();
 
 const dbg = require("debug");
-const colors = require("./colors");
+const colors = require("../colors");
 const readline = require("readline");
-const info = dbg("api:info");
+
 
 const { fetch } = require("undici");
 const mongoose = require("mongoose");
 
-const Mcst = require("./schema/MCST");
-const Hdb = require("./schema/HDB");
-const models = { mcst: Mcst, hdb: Hdb };
+const Mcst = require("../schema/MCST");
+const Hdb = require("../schema/HDB");
+const models = {
+  mcst: Mcst,
+  hdb: Hdb,
+};
 
 //? setting up mongo connection
 
-const dbName = "hdbmcstdata";
+const dbName = process.env.DBNAME;
 dbg("mongo:url")(process.env.MONGO_URI);
 const mongooseUrl = `${process.env.MONGO_URI}${dbName}`;
 info(mongooseUrl);

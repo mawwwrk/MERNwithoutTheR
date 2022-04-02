@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+#shellcheck shell=bash
+
+filterer() {
+    jq 'map({ blk_no:.BLK_NO,
+    road_name:.ROAD_NAME,
+    building:.BUILDING,
+    postal_code:.POSTAL
+    })' <"$1"
+    # address: (.ADDRESS | capture("(?<add>.+) SINGAPORE [0-9]+").add )
+}
+filterer "$@"
